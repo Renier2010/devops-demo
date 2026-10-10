@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t devops-demo:${{ github.sha }} .
+
+      - name: Smoke test
+        run: |
+          docker run -d -p 5000:5000 --name demo devops-demo:${{ github.sha }}
+          sleep 3
+          curl --fail localhost:5000/health
+
+      - name: Scan with Trivy
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            --severity HIGH,CRITICAL --exit-code 0 \
+            devops-demo:${{ github.sha }}
