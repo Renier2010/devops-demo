@@ -111,3 +111,28 @@ Add a database and a reverse proxy with Docker Compose
 Replace the Docker provider in Terraform with AWS (VPC, EC2, security group)
 Deploy to Kubernetes with Helm
 Add an alert in Grafana for when the app goes down
+
+## Week 1: Docker in depth
+
+Extended the app with a Postgres database, Docker Compose and an nginx reverse proxy.
+
+| Topic | What I built |
+|---|---|
+| Dockerfile | Layer caching, .dockerignore, ENV, non-root user |
+| Volumes | Postgres data survives container removal |
+| Networks | Containers find each other by name |
+| Compose | App + db started with one command, db healthcheck |
+| nginx | Reverse proxy on port 80, app port hidden |
+| Multi-stage build | Image 55 MB to 44 MB; Trivy findings unchanged (they come from the base image) |
+
+Run it:
+
+    docker compose up -d --build
+    curl localhost/health
+
+### Known limitations
+- Database password is hardcoded in docker-compose.yml (lab only; use secrets in real projects)
+- Image findings come from the base image and are not yet fixed
+
+### Things that broke
+- Port 80 was already used by the VM's own nginx, so Docker's nginx could not start. Fixed by stopping and disabling the host nginx.
